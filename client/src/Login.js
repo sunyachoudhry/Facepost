@@ -1,25 +1,23 @@
-import './App.css';
+import './login.css';
 import {Register} from "./Register";
 import React, {useState, useEffect} from "react";
+import axios from "axios"; 
 
 
 export const Login = () => {
     const [email, setEmail] = useState('');
     const [pass, setPass] = useState('');
     const [changePage, setChangePass] = useState(false); 
-    const [backendData, setBackendData] = useState([{}]) 
-
-    useEffect(() => {
-        fetch("/Datapoint")
-        .then(response => response.json())
-        .then(data => {
-            setBackendData(data)
-        })
-    }, []) 
-
-    const handleSubmit = (e) => {
+    
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(email);
+        console.log("Submitted");
+
+        try {
+            await axios.post('/info', {name: 'John Doe'});
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const switchToRegister = () => {
@@ -37,24 +35,12 @@ export const Login = () => {
                     <label htmlFor = "password"> password</label>
                     <input value = {pass} type = "password" placeholder = "*******" id = "password" name = "password"/>
                     <button> Log In </button>
-
                 </form>
                 <button className = "link-button" onClick = {switchToRegister}>Don't have an account? Register here.</button>
                 {changePage ? <Register /> : null} 
-
-                {(typeof backendData.foods === 'undefined') ? (
-                        
-                        <p> Loading...</p>) : (
-
-                backendData.foods.map((food, i) => {
-                        <p> key = {i}{food}</p>
-                }))
-                }
-
             </div>
         </div>
     )
 }
-
 
 export default Login;
