@@ -1,15 +1,14 @@
 const express = require('express')
 const app = express()
-const router = express.Router();
+const User = require('./models/User')
+const { connectToMongoDB } = require('./mongodb/connection')
+const userRoutes = require('./routes/user'); // import the routes
 
-// Used to get data from DB
-app.get('/datapoint', (req,res) => {
-    res.json({"foods": ["Cheese", "Burger", "Tacos"] })
-})
+app.use(express.json());
 
-// Used to sent data to the DB
-app.post('/info', (req, res) => {
-    res.send("Post method has been hit.") 
-})
+app.use('/', userRoutes); //to use the routes
 
+// Create connection to MongoDB
+connectToMongoDB()
+// Connect to specific port
 app.listen(9000, console.log("Server is running on port 9000."))
