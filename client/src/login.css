@@ -1,4 +1,4 @@
-.Login {
+.Login, .Register, .Post{
   text-align: center;
   display: flex;
   min-height: 100vh;
