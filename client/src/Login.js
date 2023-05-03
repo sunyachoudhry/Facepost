@@ -1,14 +1,33 @@
 import './login.css';
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from "react-router-dom"
 
 export const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loggedIn, setLoggedIn] = useState('')
+    const navigate = useNavigate(); 
+
+    useEffect(() => {
+        if (loggedIn) 
+        {
+            navigate("/post");
+        }
+      }, [loggedIn]);
     
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Submitted");
+        const loginData = { logEmail: email, logPassword: password}; 
+        console.log(loginData);
+        await axios.get('/checkUser', {loginData})
+        .then(response => setLoggedIn(response));
+        const err = document.getElementById("LogIn Error");
+
+        if (!loggedIn){
+            err.textContent = "Login credentials invalid. Please try again."
+        }
     }
 
     return (
@@ -16,11 +35,12 @@ export const Login = () => {
             <div className = "auth-form-container">
                 <h2>Login</h2>
                 <form className = "login-form" onSubmit = {handleSubmit}>
+                    <span id ="LogIn Error"></span>
                     <label htmlFor = "email">Email</label>
-                    <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder = "yourname@mail.com"/>
+                    <input value={email} type="email" onChange={e => setEmail(e.target.value)} placeholder = "yourname@mail.com"/>
                     <label htmlFor = "password">Password</label>
-                    <input value = {password} onChange={e => setPassword(e.target.value)} type = "password" placeholder = "*******"/>
-                    <button id= "loginButton"> Log In </button>
+                    <input value = {password} type = "password" onChange={e => setPassword(e.target.value)} placeholder = "*******"/>
+                    <button id= "loginButton" type = "submit"> Log In </button>
                 </form>
                 <Link exact to="/register" className="link-button">Don't have an account? Register here.</Link>
             </div>
