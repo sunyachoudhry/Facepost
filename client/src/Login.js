@@ -20,13 +20,18 @@ export const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const loginData = { logEmail: email, logPassword: password}; 
-        console.log(loginData);
-        await axios.get('/checkUser', {loginData})
-        .then(response => setLoggedIn(response));
+        const userToBeLoggedIn = await axios.get("/checkUser", { params: loginData });
         const err = document.getElementById("LogIn Error");
 
-        if (!loggedIn){
+        console.log(userToBeLoggedIn);
+
+        if (userToBeLoggedIn.status !== 200)
+        {
             err.textContent = "Login credentials invalid. Please try again."
+        }
+        else
+        {
+            setLoggedIn(userToBeLoggedIn);
         }
     }
 
