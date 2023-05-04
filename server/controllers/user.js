@@ -3,21 +3,27 @@ const bcrypt = require ('bcrypt');
 
 
 const checkUser = (async (req, res) => {
-    const user = req.body.logEmail;
-    const pass = req.body.logPassword;
-    //const user = await User.findOne({email: req.body.userEmail}).lean()
-    const a = await Users.findOne({email: user}).exec();
-    if (!a) {
-        console.log(user)
-        console.log("not found")
-  } else {
-        var validatePassword = await bcrypt.compare(pass, User.password)
+    const user = req.query.logEmail;
+    const pass = req.query.logPassword;
+    const foundUser = await User.findOne({email: user}).exec();
 
-        if (!validatePassword) {
-        res.status(400).send({message: "Invalid Password"})
+    if (!foundUser) 
+    {
+        res.status(401).send({message:"No User found"});
+    } 
+    else 
+    {
+        const validatePassword = await bcrypt.compare(pass, foundUser.password)
+
+        if (!validatePassword) 
+        {
+            res.status(401).send({message: "Invalid Password"})
         } 
-        res.status(200).send({message:"Log In Succesful"})
-   };
+        else
+        {
+            res.status(200).send({message:"Success"})
+        }
+    }
 })
 
 const createUser = (async (req, res) => {
