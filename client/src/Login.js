@@ -23,7 +23,6 @@ export const Login = () => {
         const userToBeLoggedIn = await axios.get("/checkUser", { params: loginData });
         const err = document.getElementById("LogIn Error");
 
-        console.log(userToBeLoggedIn);
 
         if (userToBeLoggedIn.status !== 200)
         {

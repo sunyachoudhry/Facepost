@@ -1,7 +1,9 @@
 const express = require('express')
-const unlinkFile = util.promisify(fs.unlink)
+const util = require('util')
+const fs = require('fs')
 const multer = require('multer')
-const upload = multer({ dest: 'uploads/' })
+//const upload = multer({ dest: 'uploads/' })
+const unlinkFile = util.promisify(fs.unlink)
 const app = express()
 
 const uploadPost = (async (req, res) => {
