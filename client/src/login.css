@@ -1,4 +1,4 @@
-.Login, .Register, .Post{
+.Login, .Register, .Post, .Validate{
   text-align: center;
   display: flex;
   min-height: 100vh;
@@ -8,7 +8,7 @@
   background-image: linear-gradient(79deg, #eff6e0, #aec3b0 48%, #eff6e0);
 }
 
-.auth-form-container, .login-form, .register-form {
+.auth-form-container, .login-form, .register-form, .validate {
   display: flex;
   flex-direction: column;
 }
@@ -44,4 +44,8 @@ button {
   background: none;
   color: white;
   text-decoration: underline;
+}
+
+.validate {
+  align-items: center;
 }

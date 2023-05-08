@@ -1,19 +1,36 @@
-import React from 'react'
+import React, {useState, useEffect} from "react";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Register from "./Register";
-import Login from "./Login";
-import Post from "./Post";
+import RegisterPage from "./RegisterPage";
+import LoginPage from "./LoginPage";
+import PostPage from "./PostPage";
+import ValidatePage from "./ValidatePage";
 import './login.css';
+import { Amplify } from 'aws-amplify';
+import awsExports from './aws-exports';
+import '@aws-amplify/ui-react/styles.css';
 
-export default function App() {
+Amplify.configure(awsExports);
+
+function App() {
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  function updateAuthStatus(authStatus) {
+    setIsAuthenticated(authStatus)
+  }
+
   return (
-    /* Setting all routes that will be needed */
-    <Router>
+    <div>
+      <Router>
         <Routes>
-          <Route path='/' element={<Login/>}/>
-          <Route path='/register' element={<Register/>}/>
-          <Route path='/post' element={<Post/>}/>
+          <Route path='/' element={<LoginPage updateAuthStatus={updateAuthStatus} isAuthenticated={isAuthenticated} />} />
+          <Route path='/register' element={<RegisterPage/>}/>
+          <Route path='/validate' element={<ValidatePage />} />
+          <Route path='/post' element={<PostPage isAuthenticated={isAuthenticated} />} />
         </Routes>
-    </Router>
+      </Router>
+    </div>
   )
 }
+
+export default App;
