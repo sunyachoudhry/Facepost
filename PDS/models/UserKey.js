@@ -13,6 +13,10 @@ const userKeySchema = new Schema({
     sharedKey:{
         type: String, 
         required: true
+    },
+    clientDHPubKey:{
+        type: String, 
+        required: true
     }
 })
 

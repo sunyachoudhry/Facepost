@@ -1,67 +1,80 @@
-const { getServerInstance, createDirectory, createDiffHell, putKeysInFile} = require("../utilities/fileAndKeys"); 
-const UserKey = require('../models/UserKey')
-const bcrypt = require ('bcrypt');
 const fs = require('fs'); 
-const { createDiffieHellman, createCipheriv, randomBytes, createDecipheriv } = require('crypto')
-const {  } = require('crypto');
+const publicServerKeyPath = './serverKeys/public_server_key.pem';
+const rsaPublicServerKeyPath = './serverKeys/rsa_public_server_key.pem';
+const rsaPrivateServerKeyPath = './serverKeys/rsa_private_server_key.pem';
+const primePath = './serverKeys/prime.pem'; 
+const path = require("path");
+const { getServerInstance } = require('../utilities/fileAndKeys');
+const UserKey = require('../models/UserKey'); 
+const { createDecipheriv, publicEncrypt, privateDecrypt } = require('crypto')
+const crypto = require('crypto')
 
-const registerUser = (async (req, res) => {
-    const directory = `../clientKeys/${req.body.email}_keys`;
-    const publicKeyPath = `${directory}/${req.body.email}_public_key.pem`;
-    const privateKeyPath = `${directory}/${req.body.email}_private_key.pem`;
-    const sharedKeyPath = `${directory}/${req.body.email}_shared_key.pem`;
-    const server = getServerInstance(); 
-    
-    createDirectory(directory);
-    createDirectory(`../clientKeys/${req.body.email}_keys`)
-    
-    const client = createDiffieHellman(server.getPrime(), server.getGenerator());
-    client.generateKeys();
-    putKeysInFile(client, publicKeyPath, privateKeyPath)
-    const clientSharedKey = client.computeSecret(server.getPublicKey('base64'), 'base64', 'base64');
-
-    let writeStream = fs.createWriteStream(sharedKeyPath);
-    writeStream.write(clientSharedKey);
-    writeStream.end();
-})
-
-const createUserKeyEntry = (async (req, res) => {
-    const sharedKeyPath = `${directory}/${req.body.email}_shared_key.pem`;
-    let encryptedPassword = await bcrypt.hash(req.body.userPassword, 10);
-    let sharedKeyValue = null; 
-    let encryptedEmail = null; 
-
+//Fetches the public key and prime key of the server to be used for shared key gen on clients side
+const getKeys = (async (req, res) => {
     try {  
-        sharedKeyValue = fs.readFileSync(sharedKeyPath, 'utf8');
+        var publicKey = fs.readFileSync(publicServerKeyPath, 'utf8');
+        var prime = fs.readFileSync(primePath, 'utf8')
+        const resJson = {publicKey: publicKey, prime: prime}; 
+        res.status(200).json(resJson); 
     } catch(e) {
         console.log('Error:', e.stack);
     }
-
-    /// Cipher
-    const iv = randomBytes(16);
-    const cipher = createCipheriv('aes256', sharedKeyValue, iv);
-
-    /// Encrypt
-    const encryptedMessage = cipher.update(message, 'utf8', 'hex') + cipher.final('hex');
-    console.log(`Encrypted: ${encryptedMessage}`);
-
-    /// Decrypt
-    const decipher = createDecipheriv('aes256', key, iv);
-    const decryptedMessage = decipher.update(encryptedMessage, 'hex', 'utf-8') + decipher.final('utf8');
-    console.log(`Deciphered: ${decryptedMessage.toString('utf-8')}`);
-
-    encryptEmail = 
-    encryptedPassword = 
-
-    const newUserKey = new UserKey({
-        email: encryptedEmail,
-        password: encryptedPassword,
-        publicKey: client.getPublicKey()
-    })
-    newUserKey.save()
 })
+ // Creates the entry in the database (mongoDB)
+const createEntry = (async (req, res) => {
+    const encryptedEmail = req.body.clientInfo.encryptedEmail;
+    const encryptedPw =  req.body.clientInfo.encryptedPw; 
+    const clientPublicKey = req.body.clientInfo.clientPublicKey; 
+    const pdsInstance = getServerInstance();
+    const pdsSharedKey = pdsInstance.computeSecret(clientPublicKey, 'base64', 'base64'); 
+    const decryptedEmail = symmetricDecrypt(pdsSharedKey, encryptedEmail);
+    const decryptedPw = symmetricDecrypt(pdsSharedKey, encryptedPw); 
+
+    const encryptedSharedKey = asymmetricEncrypt(pdsSharedKey, rsaPublicServerKeyPath);
+
+    const newEntry = new UserKey({
+        email: decryptedEmail,
+        password: decryptedPw,
+        sharedKey: encryptedSharedKey,
+        clientDHPubKey: clientPublicKey
+    }) 
+
+    newEntry.save(); 
+})
+//Shared key decryption function
+function symmetricDecrypt(password, text) {
+    const algorithm = 'aes-256-ctr';
+    const key = Buffer.concat([Buffer.from(password), Buffer.alloc(32)], 32);
+    const iv = Buffer.from(text.substring(0, 32), 'hex');
+    const encryptedText = Buffer.from(text.substring(32), 'hex');
+    const decipher = createDecipheriv(algorithm, key, iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+}
+
+//Public private encryption function
+function asymmetricEncrypt (sharedKey, rsaPublicKeyFile) {
+    const publicKey = fs.readFileSync(rsaPublicKeyFile, "utf8");
+    const encrypted = crypto.publicEncrypt(
+        publicKey, Buffer.from(sharedKey));
+    return encrypted.toString("base64");
+}
+//Public private decryption function
+function asymmetricDecrypt(encryptedText, rsaPrivateKeyFile) {
+    const privateKey = fs.readFileSync(rsaPrivateKeyFile, "utf8");
+    const decrypted = crypto.privateDecrypt(
+        {
+            key: privateKey,
+            passphrase: '',
+        },
+        Buffer.from(encryptedText, "base64")
+    );
+ 
+    return decrypted.toString("utf8");
+}
 
 module.exports = {
-    registerUser,
-    createUserKeyEntry
+    getKeys,
+    createEntry
 }

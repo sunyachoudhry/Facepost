@@ -1,13 +1,23 @@
 const fs = require("fs");
-const { createDiffieHellman } = require('crypto')
+const { createDiffieHellman, generateKeyPairSync } = require('crypto')
 let serverInstance = null; 
 
-const createDiffHell = () => {
-  const diffHell = createDiffieHellman(2048);
-  return diffHell; 
-}
+// Generates all keys and puts them in the respective directory
+const putKeysInFile = (instance, publicKeyPath, privateKeyPath, primePath, rsaPublicServerKeyPath, rsaPrivateServerKeyPath) => {
 
-const putKeysInFile = (instance, publicKeyPath, privateKeyPath) => {
+  const keyPair = generateKeyPairSync('rsa', {
+    modulusLength: 4096,
+    publicKeyEncoding: {
+        type: 'spki',
+        format: 'pem'
+    },
+    privateKeyEncoding: {
+        type: 'pkcs8',
+        format: 'pem',
+        cipher: 'aes-256-cbc',
+        passphrase: ''
+    }
+  });
 
   let writeStream = fs.createWriteStream(publicKeyPath);
   writeStream.write(instance.getPublicKey('base64'));
@@ -15,6 +25,18 @@ const putKeysInFile = (instance, publicKeyPath, privateKeyPath) => {
 
   writeStream = fs.createWriteStream(privateKeyPath);
   writeStream.write(instance.getPrivateKey('base64'));
+  writeStream.end();
+
+  writeStream = fs.createWriteStream(rsaPublicServerKeyPath);
+  writeStream.write(keyPair.publicKey);
+  writeStream.end();
+
+  writeStream = fs.createWriteStream(rsaPrivateServerKeyPath);
+  writeStream.write(keyPair.privateKey);
+  writeStream.end();
+
+  writeStream = fs.createWriteStream(primePath);
+  writeStream.write(instance.getPrime("base64"));
   writeStream.end();
 }
 
@@ -55,11 +77,8 @@ const isFileEmpty = (directory, path) => {
 
 module.exports = { 
   createDirectory,
-  createDiffHell, 
-  putKeysInFile,
-  isFileEmpty,
   setServerInstance,
   getServerInstance,
-  encrypt, 
-  decrypt
+  putKeysInFile,
+  isFileEmpty
 }
