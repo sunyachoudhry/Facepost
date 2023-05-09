@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Auth } from 'aws-amplify';
+import { Auth, API } from 'aws-amplify';
 import axios from 'axios'
 
 //Validates Email addr
@@ -15,6 +15,22 @@ function ValidateEmail() {
         e.preventDefault()
         try {
             await Auth.confirmSignUp(email, authenticationCode)
+            // Use this commented code below to add post to post table on SNE
+            // API.post('userapi', '/user', {
+            //     body : {
+            //         email: email,
+            //         postid: "postid_dwdjejddew",
+            //         digitalsignature: "digitalsignature",
+            //         serviceurl: "http://imagelink.com",
+            //     }
+            // })
+            // .then((response) => {
+            //     console.log("New User Created!")
+            // })
+            // .catch((error) => {
+            //     console.log(error.response);
+            // });
+
             navigate('/')
         } catch (err) { console.log(err) }
     }
