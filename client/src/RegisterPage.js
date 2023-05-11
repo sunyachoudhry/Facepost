@@ -3,10 +3,8 @@ import React, {useState, useEffect} from "react";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom"
-import { Amplify, Auth } from 'aws-amplify'; 
-import awsConfig from './aws-exports';
+import { Auth } from 'aws-amplify'; 
 import "@aws-amplify/ui-react/styles.css";
-import { withAuthenticator } from "@aws-amplify/ui-react";
 
 //Creates Registration Page
 export const Register = () => {
@@ -24,7 +22,7 @@ export const Register = () => {
         })
 
         navigate('/validate')
-
+    
         // Request PDS public key (PDS)
         const serverKeys = await axios.get('http://localhost:9500/getKeys');
         const pdsPublicKey = serverKeys.data.publicKey;  
