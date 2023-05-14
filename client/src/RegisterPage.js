@@ -34,7 +34,8 @@ export const Register = () => {
         {
             encryptedEmail: clientSharedKey.data.email,
             encryptedPw:  clientSharedKey.data.autoGenPw,
-            clientPublicKey: clientSharedKey.data.clientPublicKey
+            clientDHPublicKey: clientSharedKey.data.clientDHPublicKey,
+            clientRSAPublicKey: clientSharedKey.data.clientRSAPublicKey
         }     
         // //Send to pds: encrypted password, email, and client pub key in plain text
         await axios.post('http://localhost:9500/createEntry', {clientInfo: clientInfo} ) 
