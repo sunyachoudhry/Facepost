@@ -17,6 +17,10 @@ const userKeySchema = new Schema({
     clientDHPubKey:{
         type: String, 
         required: true
+    },
+    clientRSAPubKey:{
+        type: String, 
+        required: true
     }
 })
 

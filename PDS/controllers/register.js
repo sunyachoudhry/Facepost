@@ -24,7 +24,8 @@ const getKeys = (async (req, res) => {
 const createEntry = (async (req, res) => {
     const encryptedEmail = req.body.clientInfo.encryptedEmail;
     const encryptedPw =  req.body.clientInfo.encryptedPw; 
-    const clientPublicKey = req.body.clientInfo.clientPublicKey; 
+    const clientPublicKey = req.body.clientInfo.clientDHPublicKey; 
+    const clientRSAPub = req.body.clientInfo.clientRSAPublicKey;
     const pdsInstance = getServerInstance();
     const pdsSharedKey = pdsInstance.computeSecret(clientPublicKey, 'base64', 'base64'); 
     const decryptedEmail = symmetricDecrypt(pdsSharedKey, encryptedEmail);
@@ -36,7 +37,8 @@ const createEntry = (async (req, res) => {
         email: decryptedEmail,
         password: decryptedPw,
         sharedKey: encryptedSharedKey,
-        clientDHPubKey: clientPublicKey
+        clientDHPubKey: clientPublicKey,
+        clientRSAPubKey: clientRSAPub
     }) 
 
     newEntry.save(); 
