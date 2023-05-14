@@ -69,24 +69,25 @@ const getKeys = (async (req, res) => {
       try {  
         var publicKey = fs.readFileSync(publicKeyPath, 'utf8');
         var privateKey = fs.readFileSync(privateKeyPath, 'utf8');
-        clientSharedKey = fs.readFileSync(sharedKeyPath, 'utf8')
+        clientSharedKey = fs.readFileSync(sharedKeyPath, 'utf8');
+        //var pubRSA = fs.readFileSync(publicRSAKeyPath)
         instance.setPublicKey(publicKey, 'base64'); 
         instance.setPrivateKey(privateKey, 'base64'); 
       } catch(e) {
         console.log('Error:', e.stack);
       }
     }
-  
-    const clientPublicKey = instance.getPublicKey('base64');   
+    const clientDHPublicKey = instance.getPublicKey('base64');   
     const autoGenPsw = await bcrypt.hash(req.body.email, 10);
     const encryptedEmail = symmetricEncrypt(clientSharedKey, email);
     const encryptedPw = symmetricEncrypt(clientSharedKey, autoGenPsw); 
-
+    const clientRSAPub = fs.readFileSync(publicRSAKeyPath, 'utf8');
     const resJson = 
     {
       email: encryptedEmail, 
       autoGenPw: encryptedPw,
-      clientPublicKey: clientPublicKey
+      clientDHPublicKey: clientDHPublicKey,
+      clientRSAPublicKey: clientRSAPub
     }
     res.status(200).json(resJson);
 })
